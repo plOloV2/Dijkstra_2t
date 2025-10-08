@@ -15,7 +15,9 @@ add_executable(${PROJECT_NAME}
     src/main.c
     src/get_data.c
     src/dikstra.c
+    src/random_data.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
+
 target_link_libraries(${PROJECT_NAME} OpenMP::OpenMP_C)

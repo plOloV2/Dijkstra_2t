@@ -1,7 +1,7 @@
 #include"libs.h"
 #include"graph.h"
 
-uint32_t** dikstra_2t(uint32_t** data){
+struct graph* get_random_data(uint8_t v, uint8_t e){
 
     return NULL;
 
