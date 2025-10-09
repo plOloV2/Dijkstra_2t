@@ -1,12 +1,12 @@
-#ifndef DATA
-#define DATA
+#ifndef GRAPH
+#define GRAPH
 
 #include"libs.h"
 
 struct graph{
-    uint8_t v;
-    uint8_t e;
-    uint32_t** adj_matrix;
+    uint16_t v;
+    uint16_t e;
+    uint16_t** adj_matrix;
 };
 
 #endif

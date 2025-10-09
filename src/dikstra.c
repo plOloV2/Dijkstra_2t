@@ -1,8 +1,45 @@
 #include"libs.h"
-#include"graph.h"
+#include"graphs.h"
 
-uint32_t** dikstra_2t(uint32_t** data){
+uint32_t** dikstra_2t(struct graph* graph, uint16_t start_vertex, uint8_t num_of_threads){
 
-    return NULL;
+    uint32_t** result = malloc(sizeof(uint32_t*)*2);
+
+    if(!result)
+        return NULL;
+
+    result[0] = calloc(graph->v, sizeof(uint32_t));
+    result[1] = calloc(graph->v, sizeof(uint32_t));
+    if(!result[0] || !result[1])
+        return NULL;
+
+    uint8_t num_visited_v = 1;
+    uint8_t* visited_v = calloc(graph->v, sizeof(uint8_t));
+
+    #pragma omp parallel for
+    for(uint16_t i = 0; i < graph->v; i++){
+
+        if(i == start_vertex)
+            continue;
+
+        uint16_t edge = get_edge_weight(start_vertex, i);
+
+        if(edge == 0)
+            continue;
+
+        if(edge < result[0][i]){
+            result[0][i] = edge;
+            result[1][i] = start_vertex;
+        }
+
+    }
+
+    while(num_visited_v < graph->v){
+
+        
+
+    }
+
+    return result;
 
 }

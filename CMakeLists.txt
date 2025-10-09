@@ -13,9 +13,10 @@ find_package(OpenMP REQUIRED)
 
 add_executable(${PROJECT_NAME}
     src/main.c
-    src/get_data.c
+    src/get_data_from_file.c
     src/dikstra.c
     src/random_data.c
+    src/adj_matrix.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)

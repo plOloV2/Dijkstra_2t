@@ -1,7 +1,7 @@
 #include"libs.h"
-#include"graph.h"
+#include"graphs.h"
 
-struct graph* get_random_data(uint8_t v, uint8_t e){
+struct graph* get_random_data(uint16_t v, uint16_t e){
 
     return NULL;
 
