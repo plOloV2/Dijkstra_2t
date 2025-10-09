@@ -22,7 +22,7 @@ uint32_t** dikstra_2t(struct graph* graph, uint16_t start_vertex, uint8_t num_of
         if(i == start_vertex)
             continue;
 
-        uint16_t edge = get_edge_weight(start_vertex, i);
+        uint16_t edge = get_edge_weight(start_vertex, i, graph->adj_matrix);
 
         if(edge == 0)
             continue;
