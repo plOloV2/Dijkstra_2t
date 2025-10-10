@@ -1,7 +1,7 @@
 #include"libs.h"
 #include"graphs.h"
 
-uint32_t** dikstra_2t(struct graph* graph, uint16_t start_vertex, uint8_t num_of_threads){
+uint32_t** dikstra_multi(struct graph* graph, uint16_t start_vertex, uint8_t num_of_threads){
 
     uint32_t** result = malloc(sizeof(uint32_t*)*2);
 
@@ -18,9 +18,8 @@ uint32_t** dikstra_2t(struct graph* graph, uint16_t start_vertex, uint8_t num_of
     visited_v[start_vertex] = 1;
 
     omp_set_num_threads(num_of_threads);
-    printf("Using %i threads\n", omp_get_num_threads());
 
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for(uint16_t i = 0; i < graph->v; i++){
 
         if(i == start_vertex)
@@ -52,7 +51,7 @@ uint32_t** dikstra_2t(struct graph* graph, uint16_t start_vertex, uint8_t num_of
 
         }
 
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for(uint16_t i = 0; i < graph->v; i++){
 
             if(i == smallest_path_V)
@@ -76,6 +75,26 @@ uint32_t** dikstra_2t(struct graph* graph, uint16_t start_vertex, uint8_t num_of
         visited_v[smallest_path_V] = 1;
 
     }
+
+    return result;
+
+}
+
+uint32_t** dikstra_single(struct graph* graph, uint16_t start_vertex){
+
+    uint32_t** result = malloc(sizeof(uint32_t*)*2);
+
+    if(!result)
+        return NULL;
+
+    result[0] = calloc(graph->v, sizeof(uint32_t));
+    result[1] = calloc(graph->v, sizeof(uint32_t));
+    if(!result[0] || !result[1])
+        return NULL;
+
+    uint16_t num_visited_v = 1;
+    uint8_t* visited_v = calloc(graph->v, sizeof(uint8_t));
+    visited_v[start_vertex] = 1;
 
     return result;
 

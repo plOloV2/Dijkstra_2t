@@ -5,20 +5,22 @@
 uint16_t gcd(uint16_t a, uint16_t b);
 uint16_t find_step(uint16_t V, unsigned int* seed);
 
-struct graph* get_random_data(uint16_t V, uint16_t E){
+struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
 
-    if(E < V){
+    if(per_E > 100){
+        printf("ERROR: Percentage greater than 100 (?)");
+        return NULL;
+    }
+
+    uint16_t E = (((V * (V - 1)) / 2) * per_E) / 100;
+
+    if(connected && E < V){
         printf("ERROR: Not enought edges\n");
         return NULL;
     }
 
     if(V==1){
         printf("ERROR: Too few vertexes\n");
-        return NULL;
-    }
-
-    if(E > (V * (V - 1))/2){
-        printf("ERROR: Too many edges\n");
         return NULL;
     }
 
@@ -78,22 +80,29 @@ struct graph* get_random_data(uint16_t V, uint16_t E){
 
     }
 
-    uint16_t step = find_step(V, &seed);
-    uint16_t vs = 0, vsn = step;
+    uint16_t edges_added = 0;
 
-    for(uint16_t i = 0; i < V - 1; i++){
+    if(connected){
 
-        vs %= V;
-        vsn %= V;
-        
-        write_edge_weight(vs, vsn, (rand_r(&seed) % 0xfffe) + 1, g->adj_matrix);
+        uint16_t step = find_step(V, &seed);
+        uint16_t vs = 0, vsn = step;
 
-        vs += step;
-        vsn += step;
+        for(uint16_t i = 0; i < V - 1; i++){
+
+            vs %= V;
+            vsn %= V;
+            
+            write_edge_weight(vs, vsn, (rand_r(&seed) % 0xfffe) + 1, g->adj_matrix);
+
+            vs += step;
+            vsn += step;
+
+        }
+
+        edges_added = V - 1;
 
     }
 
-    uint16_t edges_added = V - 1;
     
     while(edges_added < E){
 

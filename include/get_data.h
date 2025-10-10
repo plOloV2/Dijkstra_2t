@@ -6,6 +6,6 @@
 
 struct graph* get_data_from_file(char* file_name);
 
-struct graph* get_random_data(uint16_t V, uint16_t E);
+struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected);
 
 #endif
