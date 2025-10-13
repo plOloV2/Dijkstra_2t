@@ -9,6 +9,12 @@ int main(int argc, char** argv){
     struct graph* data = NULL;
 
     uint16_t start_vertex = atoi(argv[1]);
+    if(start_vertex == 0){
+        printf("Vertex index starts from 1\n");
+        return 3;
+    }
+
+    start_vertex--;
 
     switch (argc){
     case 3:
@@ -31,24 +37,26 @@ int main(int argc, char** argv){
 
     }
 
+    printf("\n\nStarting calculations...\n");
+
     double time = omp_get_wtime();
         
-    uint32_t** result = dikstra_multi(data, start_vertex, THREADS_NUM);
+    uint32_t** result = dikstra_single(data, start_vertex);
 
     time = omp_get_wtime() - time;
 
-    printf("Dijkstra algorithm on %i threads took: %f ms.\n\nResults:\n", THREADS_NUM, time);
-    for(uint16_t i = 0; i < data->v; i++){
+    printf("Dijkstra algorithm on %i threads took: %f ms.\n\nResults:\n", THREADS_NUM, time*1000);
+    // for(uint16_t i = 0; i < data->v; i++){
 
-        if(i == start_vertex){
-            printf("Vertex: %i - Starting vertex\n", i+1);
-        } else if(result[0][i] == 0 && result[1][i] == 0){
-            printf("Vertex: %i - Disconnected form graph\n", i+1);
-        } else {
-            printf("Vertex: %i - Shortest path: %i Previouse vertex: %i\n", i+1, result[0][i], result[1][i]+1);
-        }
+    //     if(i == start_vertex){
+    //         printf("Vertex: %i - Starting vertex\n", i+1);
+    //     } else if(result[0][i] == UINT32_MAX){
+    //         printf("Vertex: %i - Disconnected form graph\n", i+1);
+    //     } else {
+    //         printf("Vertex: %i - Shortest path: %i Previouse vertex: %i\n", i+1, result[0][i], result[1][i]+1);
+    //     }
         
-    }
+    // }
     
     for(uint16_t i = 1; i < data->v; i++)
         free(data->adj_matrix[i - 1]);

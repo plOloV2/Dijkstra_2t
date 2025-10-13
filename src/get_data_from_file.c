@@ -6,15 +6,16 @@ struct graph* get_data_from_file(char* file_name){
     FILE* file = fopen(file_name, "r");
     if(!file){
 
-        printf("Error: Could not open file %s\n", file_name);
+        printf("ERROR: Could not open file %s\n", file_name);
         return NULL;
 
     }
 
-    uint16_t V, E;
-    if(fscanf(file, "%hu %hu", &V, &E) != 2){
+    uint16_t V;
+    uint32_t E;
+    if(fscanf(file, "%hu %u", &V, &E) != 2){
 
-        printf("Error: Could not read V and E from file\n");
+        printf("ERROR: Could not read V and E from file\n");
         fclose(file);
         return NULL;
 
@@ -24,7 +25,7 @@ struct graph* get_data_from_file(char* file_name){
 
     if(g == NULL){
 
-        printf("Error: Memory allocation failed for graph\n");
+        printf("ERROR: Memory allocation failed for graph\n");
         fclose(file);
         return NULL;
 
@@ -37,7 +38,7 @@ struct graph* get_data_from_file(char* file_name){
 
     if(g->adj_matrix == NULL){
 
-        printf("Error: Memory allocation failed for adj_matrix rows\n");
+        printf("ERROR: Memory allocation failed for adj_matrix rows\n");
         free(g);
         fclose(file);
         return NULL;
@@ -50,7 +51,7 @@ struct graph* get_data_from_file(char* file_name){
 
         if(g->adj_matrix[i - 1] == NULL){
 
-            printf("Error: Memory allocation failed for adj_matrix[%hu]\n", i);
+            printf("ERROR: Memory allocation failed for adj_matrix[%hu]\n", i);
 
             for(uint16_t j = 1; j < i; j++)
                 free(g->adj_matrix[j - 1]);
@@ -70,7 +71,7 @@ struct graph* get_data_from_file(char* file_name){
 
         if(fscanf(file, "%hu %hu %hu", &u, &v, &weight) != 3){
 
-            printf("Error: Could not read edge %hu from file\n", i);
+            printf("ERROR: Could not read edge %hu from file\n", i);
 
             for(uint16_t j = 1; j < V; j++)
                 free(g->adj_matrix[j - 1]);
