@@ -2,10 +2,12 @@
 #include"graphs.h"
 #include<time.h>
 
+#define EDGE_MAX_WEIGHT 0xfffd
+
 uint16_t gcd(uint16_t a, uint16_t b);
 uint16_t find_step(uint16_t V, unsigned int* seed);
 uint32_t get_E(uint16_t V, uint8_t per_E);
-void progress_bar(uint8_t progres);
+void progress_bar(uint64_t a, uint64_t b, uint8_t* progres, uint8_t scale);
 
 struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
 
@@ -88,6 +90,41 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
 
     }
 
+    uint8_t progres = 0xff;
+
+    if(per_E > 66){
+
+        for(uint16_t i = 1; i < V; i++){
+
+            progress_bar(i, V-1, &progres, per_E);
+
+            for(uint16_t j = 0; j < i; j++)
+                write_edge_weight(i, j, (rand_r(&seed) % EDGE_MAX_WEIGHT) + 1, g->adj_matrix);
+
+        }
+
+        uint32_t all_edges = ((uint64_t)V * ((uint64_t)V - 1)) / 2;    
+        uint32_t edges_to_delete = all_edges - E;
+
+        while(edges_to_delete > 0){
+
+            uint16_t u = (rand_r(&seed) % V);
+            uint16_t v = (rand_r(&seed) % V);
+            
+            if(u == v || get_edge_weight(u, v, g->adj_matrix) == 0)
+                continue;
+            
+            write_edge_weight(u, v, 0, g->adj_matrix);
+            edges_to_delete--;
+
+            progress_bar(all_edges - edges_to_delete, all_edges, &progres, 100);
+
+        }
+
+        return g;
+
+    }
+
     uint32_t edges_added = 0;
 
     if(connected){
@@ -100,18 +137,18 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
             vs %= V;
             vsn %= V;
             
-            write_edge_weight(vs, vsn, (rand_r(&seed) % 0xfffd) + 1, g->adj_matrix);        //zakres wag: 1 - UINT16_MAX-1
+            write_edge_weight(vs, vsn, (rand_r(&seed) % EDGE_MAX_WEIGHT) + 1, g->adj_matrix);        //zakres wag: 1 - UINT16_MAX-1
 
             vs += step;
             vsn += step;
+
+            progress_bar(i, E, &progres, 100);
 
         }
 
         edges_added = V - 1;
 
     }
-
-    uint8_t progres = 0xff;
 
     while(edges_added < E){
 
@@ -121,18 +158,10 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
         if(u == v || get_edge_weight(u, v, g->adj_matrix) != 0)
             continue;
         
-        write_edge_weight(u, v, (rand_r(&seed) % 0xfffe) + 1, g->adj_matrix);
+        write_edge_weight(u, v, (rand_r(&seed) % EDGE_MAX_WEIGHT) + 1, g->adj_matrix);
         edges_added++;
 
-        uint8_t c_progres = ((uint64_t)edges_added*100 / (uint64_t)E);
-
-        if(c_progres != progres){
-
-            progres = c_progres;
-            
-            progress_bar(progres);
-
-        }
+        progress_bar(edges_added, E, &progres, 100);
 
     }
 
@@ -174,10 +203,15 @@ uint32_t get_E(uint16_t V, uint8_t per_E){
 
 }
 
-void progress_bar(uint8_t progres){
+void progress_bar(uint64_t a, uint64_t b, uint8_t* progres, uint8_t scale){
+
+    if((a*scale / b) == *progres)
+        return;
+
+    *progres = (a*scale / b);
 
     const int bar_width = 50;
-    int pos = bar_width * progres / 100;
+    int pos = bar_width * *progres / 100;
     
     printf("\rData creation progress: [");
     for(int i = 0; i < bar_width; ++i){
@@ -190,7 +224,7 @@ void progress_bar(uint8_t progres){
             printf("-");
     }
 
-    printf("] %d%%", progres);
+    printf("] %d%%", *progres);
     fflush(stdout);
 
 }
