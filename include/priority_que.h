@@ -14,4 +14,6 @@ uint8_t pq_pop(uint16_t* vertex, uint32_t* distance, struct priority_queue* pq);
 
 uint8_t pq_empty(struct priority_queue* pq);
 
+uint32_t pq_peek_top_distance(struct priority_queue* pq);
+
 #endif

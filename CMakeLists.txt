@@ -12,13 +12,14 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -march=native -flto -fom
 find_package(OpenMP REQUIRED)
 
 add_executable(${PROJECT_NAME}
-    src/main.c
-    src/get_data_from_file.c
-    src/dijkstra_bi.c
-    src/dijkstra_single.c
-    src/random_data.c
     src/adj_matrix.c
+    src/get_data_from_file.c
+    src/random_data.c
     src/priority_que.c
+    src/uint32_arrays.c
+    src/dijkstra_bi_1th.c
+    src/dijkstra_bi_2th.c
+    src/main.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)

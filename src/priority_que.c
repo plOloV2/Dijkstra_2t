@@ -39,7 +39,7 @@ void node_swap(struct node* a, struct node* b){
 
 void heapify_up(struct priority_queue* pq){
 
-    uint32_t i = pq->size;
+    uint32_t i = pq->size - 1;
 
     while(i > 0){
 
@@ -125,5 +125,14 @@ uint8_t pq_pop(uint16_t* vertex, uint32_t* distance, struct priority_queue* pq){
 uint8_t pq_empty(struct priority_queue* pq){
 
     return pq->size == 0;
+
+}
+
+uint32_t pq_peek_top_distance(struct priority_queue* pq){
+
+    if(pq->size == 0)
+        return UINT32_MAX;
+
+    return pq->heap[0].distance;
 
 }
