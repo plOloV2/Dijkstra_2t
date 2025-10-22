@@ -56,7 +56,7 @@ int main(int argc, char** argv){
         
     uint32_t** result_2th = dikstra_bi_2th(data, start_vertex, end_vertex);
 
-    time_1th = omp_get_wtime() - time_2th;
+    time_2th = omp_get_wtime() - time_2th;
 
     printf("Dijkstra algorithm on 2 threads took: %f ms.\n\nResults:\n", time_2th*1000);
 

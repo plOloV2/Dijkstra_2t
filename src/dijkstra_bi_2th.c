@@ -1,10 +1,10 @@
 #include"graphs.h"
 #include"uint32_arrays.h"
 
-void search_nearby_vertexes_2th(uint16_t* smallest_path_v, struct priority_queue* pq, struct graph* graph, uint32_t** distances, omp_lock_t* dist_lock);
+void search_nearby_vertexes_2th(uint16_t* smallest_path_v, struct priority_queue* pq, struct graph* graph, uint32_t** distances);
 
 uint32_t** dikstra_bi_2th(struct graph* graph, uint16_t start_vertex,  uint16_t end_vertex){
-    
+
     uint32_t** result = alloc_uint32_array(graph->v, "result\0");
     if(!result)
         return NULL;
@@ -17,12 +17,38 @@ uint32_t** dikstra_bi_2th(struct graph* graph, uint16_t start_vertex,  uint16_t 
 
     }
 
-    uint32_t** dist_f = alloc_uint32_array(graph->v, "dist_f\0");
-    uint32_t** dist_b = alloc_uint32_array(graph->v, "dist_b\0");
+    uint32_t** dist_f, **dist_b;
+    struct priority_queue* Pqf, *Pqb;
+
+    #pragma omp parallel sections num_threads(2)
+    {
+        #pragma omp section
+        {
+
+            dist_f = alloc_uint32_array(graph->v, "dist_f\0");
+
+            Pqf = pq_create(graph->e);
+
+
+        }
+
+        #pragma omp section
+        {
+
+            dist_b = alloc_uint32_array(graph->v, "dist_b\0");
+
+            Pqb = pq_create(graph->e);
+
+        }
+
+    }
+
     if(!dist_f){
 
         free_uint32_array(result);
         free_uint32_array(dist_b);
+        pq_free(Pqb);
+        pq_free(Pqf);
         return NULL;
 
     }
@@ -30,140 +56,119 @@ uint32_t** dikstra_bi_2th(struct graph* graph, uint16_t start_vertex,  uint16_t 
 
         free_uint32_array(result);
         free_uint32_array(dist_f);
+        pq_free(Pqb);
+        pq_free(Pqf);
         return NULL;
 
     }
+    if(!Pqf){
 
-    omp_lock_t dist_f_lock, dist_b_lock, best_path_lock;
+        free_uint32_array(result);
+        free_uint32_array(dist_f);
+        free_uint32_array(dist_b);
+        pq_free(Pqb);
+        return NULL;
+
+    }
+    if(!Pqb){
+
+        free_uint32_array(result);
+        free_uint32_array(dist_f);
+        free_uint32_array(dist_b);
+        pq_free(Pqf);
+        return NULL;
+        
+    }
+
+    pq_push(start_vertex, 0, Pqf);
+    pq_push(end_vertex, 0, Pqb);
+
+    uint32_t best_path_lenght = UINT32_MAX;
     uint16_t join_vertex = start_vertex;
-    uint32_t best_path_lenght = UINT32_MAX, best_path_forward = 0, best_path_backward = 0;
+    dist_f[0][start_vertex] = 0;
+    dist_f[1][start_vertex] = start_vertex;
+    dist_b[0][end_vertex] = 0;
+    dist_b[1][end_vertex] = end_vertex;
 
-    omp_init_lock(&dist_f_lock);
-    omp_init_lock(&dist_b_lock);
-    omp_init_lock(&best_path_lock);
+    while(!pq_empty(Pqf) || !pq_empty(Pqb)){
 
-    #pragma omp parallel sections num_threads(2) shared(dist_f,dist_b,best_path_lenght,join_vertex, best_path_forward, best_path_backward)
-    {
+        uint32_t best_path_forward = pq_peek_top_distance(Pqf);
+        uint32_t best_path_backward = pq_peek_top_distance(Pqb);
 
-        #pragma omp section
+        if((uint64_t)best_path_forward + (uint64_t)best_path_backward >= (uint64_t)best_path_lenght)
+            break;
+
+        uint16_t current_vertex_f, current_vertex_b;
+        uint8_t end = 0;
+
+        #pragma omp parallel sections num_threads(2)
         {
 
-            struct priority_queue* pqf = pq_create(graph->e);
-            if(!pqf){}
-                
-            pq_push(start_vertex, 0, pqf);
+            #pragma omp section
+            {
 
-            omp_set_lock(&dist_f_lock);
-            dist_f[0][start_vertex] = 0;
-            dist_f[1][start_vertex] = start_vertex;
-            omp_unset_lock(&dist_f_lock);
+                if(!pq_pop(&current_vertex_f, &best_path_forward, Pqf)){
+                    end = 1;
+                } else{
 
-            while(1){
+                    uint32_t distance_b = dist_b[0][current_vertex_f];
 
-                omp_set_lock(&best_path_lock);
-                best_path_forward = pq_peek_top_distance(pqf);
-                if((uint64_t)best_path_forward + (uint64_t)best_path_backward >= (uint64_t)best_path_lenght){
+                    if(distance_b != UINT32_MAX){
 
-                    omp_unset_lock(&best_path_lock);
-                    break;
+                        uint64_t total_dist = (uint64_t)best_path_forward + (uint64_t)distance_b;
 
-                }
-                omp_unset_lock(&best_path_lock);
+                        if(total_dist <  best_path_lenght){
 
-                uint16_t current_vertex;
-                uint32_t best_path_forward_local;
-                if(!pq_pop(&current_vertex, &best_path_forward_local, pqf))
-                    break;
+                            best_path_lenght = (uint32_t)total_dist;
+                            join_vertex = current_vertex_f;
 
-                omp_set_lock(&dist_b_lock);
-                uint32_t distance_b = dist_b[0][current_vertex];
-                omp_unset_lock(&dist_b_lock);
-
-                if(distance_b != UINT32_MAX){
-
-                    uint64_t total_dist = (uint64_t)best_path_forward_local + (uint64_t)distance_b;
-
-                    omp_set_lock(&best_path_lock);
-                    if(total_dist < best_path_lenght){
-
-                        best_path_lenght = (uint32_t)total_dist;
-                        join_vertex = current_vertex;
+                        }
 
                     }
-                    omp_unset_lock(&best_path_lock);
+
+                    search_nearby_vertexes_2th(&current_vertex_f, Pqf, graph, dist_f);
 
                 }
-
-                search_nearby_vertexes_2th(&current_vertex, pqf, graph, dist_f, &dist_f_lock);
 
             }
 
-            pq_free(pqf);
+            #pragma omp section
+            {
 
-        }
+                if(!pq_pop(&current_vertex_b, &best_path_backward, Pqb)){
+                    end = 1;
+                } else{
 
-        #pragma omp section
-        {
+                    uint32_t distance_f = dist_f[0][current_vertex_b];
 
-            struct priority_queue* pqb = pq_create(graph->e);
-            if(!pqb){}
-            
-            pq_push(end_vertex, 0, pqb);
+                    if(distance_f != UINT32_MAX){
 
-            omp_set_lock(&dist_b_lock);
-            dist_b[0][end_vertex] = 0;
-            dist_b[1][end_vertex] = end_vertex;
-            omp_unset_lock(&dist_b_lock);
+                        uint64_t total_dist = (uint64_t)best_path_forward + (uint64_t)distance_f;
 
-            while(1){
+                        if(total_dist <  best_path_lenght){
 
-                omp_set_lock(&best_path_lock);
-                best_path_backward = pq_peek_top_distance(pqb);
-                if((uint64_t)best_path_forward + (uint64_t)best_path_backward >= (uint64_t)best_path_lenght){
+                            best_path_lenght = (uint32_t)total_dist;
+                            join_vertex = current_vertex_b;
 
-                    omp_unset_lock(&best_path_lock);
-                    break;
-
-                }
-                omp_unset_lock(&best_path_lock);
-
-                uint16_t current_vertex;
-                uint32_t best_path_backward_local;
-                if(!pq_pop(&current_vertex, &best_path_backward_local, pqb))
-                    break;
-
-                omp_set_lock(&dist_f_lock);
-                uint32_t distance_f = dist_f[0][current_vertex];
-                omp_unset_lock(&dist_f_lock);
-
-                if(distance_f != UINT32_MAX){
-
-                    uint64_t total_dist = (uint64_t)best_path_backward_local + (uint64_t)distance_f;
-
-                    omp_set_lock(&best_path_lock);
-                    if(total_dist < best_path_lenght){
-
-                        best_path_lenght = (uint32_t)total_dist;
-                        join_vertex = current_vertex;
+                        }
 
                     }
-                    omp_unset_lock(&best_path_lock);
+
+                    search_nearby_vertexes_2th(&current_vertex_b, Pqb, graph, dist_b);
 
                 }
-
-                search_nearby_vertexes_2th(&current_vertex, pqb, graph, dist_b, &dist_b_lock);
 
             }
 
-            pq_free(pqb);
-
         }
+
+        if(end)
+            break;
 
     }
 
-    omp_destroy_lock(&dist_f_lock);
-    omp_destroy_lock(&dist_b_lock);
-    omp_destroy_lock(&best_path_lock);
+    pq_free(Pqf);
+    pq_free(Pqb);
 
     if(best_path_lenght == UINT32_MAX){
 
@@ -203,7 +208,7 @@ uint32_t** dikstra_bi_2th(struct graph* graph, uint16_t start_vertex,  uint16_t 
 
 }
 
-void search_nearby_vertexes_2th(uint16_t* smallest_path_v, struct priority_queue* pq, struct graph* graph, uint32_t** distances, omp_lock_t* dist_lock){
+void search_nearby_vertexes_2th(uint16_t* smallest_path_v, struct priority_queue* pq, struct graph* graph, uint32_t** distances){
 
     for(uint16_t i = 0; i < graph->v; i++){
 
@@ -212,28 +217,15 @@ void search_nearby_vertexes_2th(uint16_t* smallest_path_v, struct priority_queue
         if(weight == 0)
             continue;
 
-        omp_set_lock(dist_lock);
-        uint32_t temp_dist = distances[0][*smallest_path_v];
-        omp_unset_lock(dist_lock);
+        if(distances[0][*smallest_path_v] <= UINT32_MAX - weight){
 
-        if(temp_dist <= UINT32_MAX - weight){
-
-            uint32_t new_distance = temp_dist + weight;
-
-            omp_set_lock(dist_lock);
-            uint32_t temp_dist = distances[0][i];
+            uint32_t new_distance = distances[0][*smallest_path_v] + weight;
             
-            if(new_distance < temp_dist){
+            if(new_distance < distances[0][i]){
 
                 distances[0][i] = new_distance;
                 distances[1][i] = *smallest_path_v;
-                omp_unset_lock(dist_lock);
-
                 pq_push(i, new_distance, pq);
-
-            } else{
-
-                omp_unset_lock(dist_lock);
 
             }
 
