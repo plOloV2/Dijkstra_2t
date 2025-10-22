@@ -90,6 +90,8 @@ uint32_t** dikstra_bi_2th(struct graph* graph, uint16_t start_vertex,  uint16_t 
     dist_b[0][end_vertex] = 0;
     dist_b[1][end_vertex] = end_vertex;
 
+    // omp_lock_t 
+
     while(!pq_empty(Pqf) || !pq_empty(Pqb)){
 
         uint32_t best_path_forward = pq_peek_top_distance(Pqf);
@@ -143,7 +145,7 @@ uint32_t** dikstra_bi_2th(struct graph* graph, uint16_t start_vertex,  uint16_t 
 
                     if(distance_f != UINT32_MAX){
 
-                        uint64_t total_dist = (uint64_t)best_path_forward + (uint64_t)distance_f;
+                        uint64_t total_dist = (uint64_t)best_path_backward + (uint64_t)distance_f;
 
                         if(total_dist <  best_path_lenght){
 

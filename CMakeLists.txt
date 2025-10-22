@@ -19,6 +19,7 @@ add_executable(${PROJECT_NAME}
     src/uint32_arrays.c
     src/dijkstra_bi_1th.c
     src/dijkstra_bi_2th.c
+    src/benchmark.c
     src/main.c
 )
 

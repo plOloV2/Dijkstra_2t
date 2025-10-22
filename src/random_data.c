@@ -9,7 +9,7 @@ uint16_t find_step(uint16_t V, unsigned int* seed);
 uint32_t get_E(uint16_t V, uint8_t per_E);
 void progress_bar(uint64_t a, uint64_t b, uint8_t* progres, uint8_t scale);
 
-struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
+struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected, uint8_t disp){
 
     if(per_E > 100){
         printf("ERROR: Percentage greater than 100 (?)\n");
@@ -17,7 +17,8 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
     }
 
     uint32_t E = get_E(V, per_E);
-    printf("Number of edges: %u\n", E);
+    if(disp)
+        printf("Number of edges: %u\n", E);
 
     if(E > 50000000){
         printf("ERROR: Too many edges\n");
@@ -96,7 +97,8 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
 
         for(uint16_t i = 1; i < V; i++){
 
-            progress_bar(i, V-1, &progres, per_E);
+            if(disp)
+                progress_bar(i, V-1, &progres, per_E);
 
             for(uint16_t j = 0; j < i; j++)
                 write_edge_weight(i, j, (rand_r(&seed) % EDGE_MAX_WEIGHT) + 1, g->adj_matrix);
@@ -117,7 +119,8 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
             write_edge_weight(u, v, 0, g->adj_matrix);
             edges_to_delete--;
 
-            progress_bar(all_edges - edges_to_delete, all_edges, &progres, 100);
+            if(disp)
+                progress_bar(all_edges - edges_to_delete, all_edges, &progres, 100);
 
         }
 
@@ -142,7 +145,8 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
             vs += step;
             vsn += step;
 
-            progress_bar(i, E, &progres, 100);
+            if(disp)
+                progress_bar(i, E, &progres, 100);
 
         }
 
@@ -161,7 +165,8 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected){
         write_edge_weight(u, v, (rand_r(&seed) % EDGE_MAX_WEIGHT) + 1, g->adj_matrix);
         edges_added++;
 
-        progress_bar(edges_added, E, &progres, 100);
+        if(disp)
+            progress_bar(edges_added, E, &progres, 100);
 
     }
 
