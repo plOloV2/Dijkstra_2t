@@ -73,7 +73,7 @@ void run_benchmark(uint16_t V, uint8_t per_E){
     fprintf(file, "i;time_1th;time_2th\n");
 
     for(uint8_t i = 0; i < 100; i++)
-        fprintf(file, "%d;%.9f:%.9f\n", (int)i, results[i][0], results[i][1]);
+        fprintf(file, "%d;%.9f;%.9f\n", (int)i, results[i][0], results[i][1]);
 
     printf("Calculations done and saved to: %s\n\n\n", filename);
 }

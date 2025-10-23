@@ -66,12 +66,9 @@ int main(int argc, char** argv){
 
     printf("Bidirectional Dijkstra algorithm on 2 threads took: %f ms.\n", time_2th*1000);
 
-    if(!compare_uint32_arrays(result_1th, result_2th, data->v))
+    if(!compare_uint32_arrays(result_1th, result_2th, data->v)){
+
         printf("Results missmatch!\n\n");
-
-    if(result_1th[0][end_vertex] == UINT32_MAX){
-
-        printf("Path between %hu and %hu does not exist\n", start_vertex, end_vertex);
 
         for(uint16_t i = 0; i < data->v; i++){
 
@@ -100,6 +97,11 @@ int main(int argc, char** argv){
         }
 
     }
+        
+    if(result_1th[0][end_vertex] == UINT32_MAX)
+        printf("Path between %hu and %hu does not exist\n", start_vertex, end_vertex);
+
+    
     
     for(uint16_t i = 1; i < data->v; i++)
         free(data->adj_matrix[i - 1]);

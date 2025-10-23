@@ -4,3 +4,5 @@
 /dijkstra_2t
 *.csv
 auto.sh
+/results_r
+/results_n
