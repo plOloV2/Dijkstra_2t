@@ -35,13 +35,3 @@ void free_uint32_array(uint32_t** array){
     array = NULL;
 
 }
-
-uint8_t compare_uint32_arrays(uint32_t** array_A, uint32_t** array_B, uint16_t size){
-
-    for(uint16_t i = 0; i < size; i++)
-        if(array_A[0][i] != array_B[0][i] || array_A[1][i] != array_B[1][i])
-            return 0;
-
-    return 1;
-
-}

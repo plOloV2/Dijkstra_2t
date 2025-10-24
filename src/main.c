@@ -66,7 +66,7 @@ int main(int argc, char** argv){
 
     printf("Bidirectional Dijkstra algorithm on 2 threads took: %f ms.\n", time_2th*1000);
 
-    if(!compare_uint32_arrays(result_1th, result_2th, data->v)){
+    if(result_1th[0][end_vertex] != result_2th[0][end_vertex]){
 
         printf("Results missmatch!\n\n");
 

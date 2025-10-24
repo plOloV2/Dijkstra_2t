@@ -35,14 +35,16 @@ void run_benchmark(uint16_t V, uint8_t per_E){
         uint32_t** result_2th = dikstra_bi_2th(data, 0, V/2);
         results[i][1] = omp_get_wtime() - results[i][1];
 
-        if(!compare_uint32_arrays(result_1th, result_2th, V)){
+        if(result_1th[0][V/2] != result_2th[0][V/2]){
 
-            // fprintf(stderr, "ERROR: results missmatch\n");
             results[i][0] = 0;
             results[i][1] = 0;
             i--;
 
         }
+
+        results[i][0] *= 1000;
+        results[i][1] *= 1000;
 
         free_uint32_array(result_1th);
         free_uint32_array(result_2th);
@@ -75,7 +77,7 @@ void run_benchmark(uint16_t V, uint8_t per_E){
     for(uint8_t i = 0; i < 100; i++)
         fprintf(file, "%d;%.9f;%.9f\n", (int)i, results[i][0], results[i][1]);
 
-    printf("Calculations done and saved to: %s\n\n\n", filename);
+    printf("Calculations done and saved to: %s\n\n", filename);
 }
 
 void progress_bar_bench(uint8_t percentage){

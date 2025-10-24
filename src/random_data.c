@@ -20,11 +20,6 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected, uint
     if(disp)
         printf("Number of edges: %u\n", E);
 
-    if(E > 50000000){
-        printf("ERROR: Too many edges\n");
-        return NULL;
-    }
-
     if(connected && E < V){
         printf("ERROR: Not enought edges\n");
         return NULL;
