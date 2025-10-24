@@ -3,6 +3,17 @@
 #include"dikstra.h"
 #include"uint32_arrays.h"
 
+struct outdata{
+
+    double res1;
+    double res2;
+    uint16_t len1;
+    uint16_t len2;
+    uint32_t path_length1;
+    uint32_t path_length2;
+
+};
+
 void progress_bar_bench(uint8_t percentage);
 
 void run_benchmark(uint16_t V, uint8_t per_E){
@@ -15,7 +26,14 @@ void run_benchmark(uint16_t V, uint8_t per_E){
     }
 
     struct graph* data = NULL;
-    double results[100][2];
+    struct outdata* output = calloc(100, sizeof(struct outdata));
+    if(!output){
+
+        printf("ERROR: outdata alloc fail\n");
+        return;
+
+    }
+        
 
     for(uint8_t i = 0; i < 100; i++){
 
@@ -27,24 +45,42 @@ void run_benchmark(uint16_t V, uint8_t per_E){
 
         }
 
-        results[i][0] = omp_get_wtime();
+        output[i].res1 = omp_get_wtime();
         uint32_t** result_1th = dikstra_bi_1th(data, 0, V/2);
-        results[i][0] = omp_get_wtime() - results[i][0];
+        output[i].res1 = omp_get_wtime() - output[i].res1;
 
-        results[i][1] = omp_get_wtime();
+        output[i].res2 = omp_get_wtime();
         uint32_t** result_2th = dikstra_bi_2th(data, 0, V/2);
-        results[i][1] = omp_get_wtime() - results[i][1];
+        output[i].res2 = omp_get_wtime() - output[i].res2;
 
         if(result_1th[0][V/2] != result_2th[0][V/2]){
 
-            results[i][0] = 0;
-            results[i][1] = 0;
+            output[i].res1 = 0;
+            output[i].res2 = 0;
             i--;
 
-        }
+        } else{
 
-        results[i][0] *= 1000;
-        results[i][1] *= 1000;
+            output[i].res1 *= 1000;
+            output[i].res2 *= 1000;
+
+            output[i].path_length1 = result_1th[0][V/2];
+            output[i].path_length2 = result_2th[0][V/2];
+
+            if(output[i].path_length1 != output[i].path_length2)
+                printf("miss\n");
+
+            for(uint16_t j = 0; j < V; j++){
+
+                if(result_1th[0][j] != UINT32_MAX)
+                    output[i].len1++;
+
+                if(result_2th[0][j] != UINT32_MAX)
+                    output[i].len2++;
+
+            }
+
+        }
 
         free_uint32_array(result_1th);
         free_uint32_array(result_2th);
@@ -72,12 +108,17 @@ void run_benchmark(uint16_t V, uint8_t per_E){
 
     }
 
-    fprintf(file, "i;time_1th;time_2th\n");
+    fprintf(file, "i;time_1th;time_2th;length1;length2;path1;path2\n");
 
     for(uint8_t i = 0; i < 100; i++)
-        fprintf(file, "%d;%.9f;%.9f\n", (int)i, results[i][0], results[i][1]);
+        fprintf(file, "%d;%.9f;%.9f;%hu;%hu;%u;%u\n", (int)i, output[i].res1, output[i].res2, output[i].len1, output[i].len2, output[i].path_length1, output[i].path_length2);
+
+    fclose(file);
+
+    free(output);
 
     printf("Calculations done and saved to: %s\n\n", filename);
+
 }
 
 void progress_bar_bench(uint8_t percentage){
