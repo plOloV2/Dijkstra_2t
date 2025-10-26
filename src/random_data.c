@@ -163,9 +163,6 @@ struct graph* get_random_data(uint16_t V, uint8_t per_E, uint8_t connected, uint
         if(disp)
             progress_bar(edges_added, E, &progres, 100);
 
-        if(edges_added == E/4)
-            per_E = 0;
-
     }
 
     return g;
